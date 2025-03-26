@@ -1,0 +1,35 @@
+#!/bin/sh
+
+# /etc/rc.d/rc.fsck - Filesystem check script for LxOS
+
+case "$1" in
+    start)
+        echo "Checking filesystems..."
+        fsck -A -T -M
+        if [ $? -gt 1 ]; then
+            echo "Filesystem errors detected! Dropping to shell..."
+            /bin/sh
+        fi
+        ;;
+    stop)
+        # No-op for stop (fsck isn’t a persistent service)
+        ;;
+    status)
+        # fsck isn’t a running service, so check last run status if logged
+        if [ -f /var/log/fsck.log ]; then
+            echo "Last fsck run: $(tail -n 1 /var/log/fsck.log)"
+        else
+            echo "No fsck run logged."
+        fi
+        ;;
+    restart)
+        echo "Restarting filesystem check..."
+        $0 start
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status|restart}"
+        exit 1
+        ;;
+esac
+
+exit 0

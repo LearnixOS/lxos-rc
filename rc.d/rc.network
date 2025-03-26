@@ -1,0 +1,39 @@
+#!/bin/sh
+
+# /etc/rc.d/rc.network - Network service script for LxOS
+
+case "$1" in
+    start)
+        echo "Starting network..."
+        ip link set lo up
+        if ip link show eth0 >/dev/null 2>&1; then
+            dhcpcd eth0 &
+        fi
+        ;;
+    stop)
+        echo "Stopping network..."
+        pkill dhcpcd
+        ip link set lo down
+        ;;
+    status)
+        if pidof dhcpcd >/dev/null 2>&1; then
+            echo "Network is running (dhcpcd PID: $(pidof dhcpcd))."
+        elif ip link show lo | grep -q "UP"; then
+            echo "Loopback is up, but no dhcpcd running."
+        else
+            echo "Network is not running."
+        fi
+        ;;
+    restart)
+        echo "Restarting network..."
+        $0 stop
+        sleep 1
+        $0 start
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status|restart}"
+        exit 1
+        ;;
+esac
+
+exit 0

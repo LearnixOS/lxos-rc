@@ -1,0 +1,35 @@
+#!/bin/sh
+
+# /etc/rc.d/rc.wpa_supplicant - WPA_Supplicant service script for LxOS
+
+case "$1" in
+    start)
+        echo "Starting WPA_Supplicant..."
+        wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant.conf
+        dhcpcd wlan0 &
+        ;;
+    stop)
+        echo "Stopping WPA_Supplicant..."
+        pkill wpa_supplicant
+        pkill dhcpcd
+        ;;
+    status)
+        if pidof wpa_supplicant >/dev/null 2>&1; then
+            echo "WPA_Supplicant is running (PID: $(pidof wpa_supplicant))."
+        else
+            echo "WPA_Supplicant is not running."
+        fi
+        ;;
+    restart)
+        echo "Restarting WPA_Supplicant..."
+        $0 stop
+        sleep 1
+        $0 start
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status|restart}"
+        exit 1
+        ;;
+esac
+
+exit 0

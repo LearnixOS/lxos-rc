@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# /etc/rc.d/rc.local - User-defined startup script for LxOS
+
+case "$1" in
+    start)
+        echo "Running user-defined startup commands..."
+        # Example: Start a login manager like lightdm
+        # [ -x /usr/bin/lightdm ] && lightdm &
+        ;;
+    stop)
+        # No-op for stop (add cleanup if needed)
+        ;;
+    *)
+        echo "Usage: $0 {start|stop}"
+        exit 1
+        ;;
+esac
+
+exit 0

@@ -1,0 +1,62 @@
+#!/bin/sh
+
+# /etc/lxos-rc - Main init script for LxOS
+
+# Load configuration
+[ -f /etc/rc.conf ] && . /etc/rc.conf
+
+# Function to mount essential filesystems
+mount_fs() {
+    mount -t proc proc /proc
+    mount -t sysfs sys /sys
+    mount -t devtmpfs dev /dev
+    mount -o remount,rw /
+    echo "Mounted proc, sys, dev, and root filesystems"
+}
+
+# Function to set system clock
+set_clock() {
+    if [ -n "$HARDWARECLOCK" ] && [ -n "$TIMEZONE" ]; then
+        echo "Setting system clock ($HARDWARECLOCK, $TIMEZONE)..."
+        hwclock --systz --"$HARDWARECLOCK"
+        ln -sf "/usr/share/zoneinfo/$TIMEZONE" /etc/localtime
+    fi
+}
+
+# Function to start services
+start_services() {
+    echo "Starting LxOS services..."
+    for svc in $DAEMONS; do
+        script="/etc/rc.d/rc.$svc"
+        if [ -x "$script" ]; then
+            echo "Starting $svc..."
+            "$script" start || echo "Failed to start $svc"
+        fi
+    done
+    [ -x /etc/rc.d/rc.local ] && /etc/rc.d/rc.local start
+}
+
+# Function to stop services
+stop_services() {
+    echo "Stopping LxOS services..."
+    for svc in $(echo "$DAEMONS" | tr ' ' '\n' | tac); do
+        script="/etc/rc.d/rc.$svc"
+        if [ -x "$script" ]; then
+            echo "Stopping $svc..."
+            "$script" stop || echo "Failed to stop $svc"
+        fi
+    done
+}
+
+# Trap shutdown signals
+trap 'stop_services; sync; umount -a; poweroff' TERM INT
+
+# Main execution
+echo "LxOS Init System (lxos-rc) starting..."
+mount_fs
+set_clock
+start_services
+echo "System initialized. Entering minimal shell..."
+while :; do
+    /bin/sh
+done

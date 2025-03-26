@@ -1,0 +1,33 @@
+#!/bin/sh
+
+# /etc/rc.d/rc.syslog - Syslog service script for LxOS
+
+case "$1" in
+    start)
+        echo "Starting syslog..."
+        syslogd -O /var/log/messages
+        ;;
+    stop)
+        echo "Stopping syslog..."
+        pkill syslogd
+        ;;
+    status)
+        if pidof syslogd >/dev/null 2>&1; then
+            echo "Syslog is running (PID: $(pidof syslogd))."
+        else
+            echo "Syslog is not running."
+        fi
+        ;;
+    restart)
+        echo "Restarting syslog..."
+        $0 stop
+        sleep 1
+        $0 start
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status|restart}"
+        exit 1
+        ;;
+esac
+
+exit 0

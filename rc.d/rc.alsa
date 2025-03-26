@@ -1,0 +1,44 @@
+#!/bin/sh
+
+# /etc/rc.d/rc.alsa - ALSA service script for LxOS
+
+# File to store ALSA state
+STATE_FILE=/var/lib/alsa/asound.state
+
+case "$1" in
+    start)
+        echo "Starting ALSA..."
+        # Load ALSA module if needed (optional)
+        [ -n "$(lsmod | grep snd)" ] || modprobe snd-hda-intel 2>/dev/null
+        # Restore ALSA mixer state if available
+        [ -f "$STATE_FILE" ] && alsactl restore
+        ;;
+    stop)
+        echo "Stopping ALSA..."
+        # Save ALSA mixer state
+        alsactl store
+        # Unload ALSA module (optional, commented out as it may affect other services)
+        # modprobe -r snd-hda-intel 2>/dev/null
+        ;;
+    status)
+        if [ -f "$STATE_FILE" ] && pidof alsactl >/dev/null 2>&1; then
+            echo "ALSA is running (state file exists and alsactl process detected)."
+        elif [ -f "$STATE_FILE" ]; then
+            echo "ALSA state file exists, but no active process detected."
+        else
+            echo "ALSA is not running (no state file or process)."
+        fi
+        ;;
+    restart)
+        echo "Restarting ALSA..."
+        $0 stop
+        sleep 1
+        $0 start
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status|restart}"
+        exit 1
+        ;;
+esac
+
+exit 0
