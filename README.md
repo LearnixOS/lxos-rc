@@ -19,5 +19,5 @@
 ## Installation
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/<your-username>/lxos-rc.git
+   git clone https://github.com/LearnixOS/lxos-rc.git
    cd lxos-rc
